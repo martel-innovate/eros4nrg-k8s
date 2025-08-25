@@ -4,6 +4,8 @@ The files in this folder, feature a modular, Kubernetes data platform designed f
 
 The architecture is built around microservices deployed using Kustomize, enabling granular control over each component and its dependencies.
 
+![Alt text](/images/EROS4NRG-architecture.svg)
+
 The platform is composed of the following core modules:
 
 *   **IoT Stream**: Captures live data from APIs or databases and loads it into a data lake.
@@ -38,15 +40,28 @@ Here's a high-level view of the folder structure:
 ```
 k8s/
 ├── deploy/
+|   ├── grafana_provisioning/
+│   |    ├── dashboards-config.yaml
+|   |    └── datasources.yaml
 │   ├── data-catalogue.yaml
 │   ├── keycloak.yaml
 │   ├── kustomization.yaml
-|   ├── ...
+|   ├── data-pipeline.yaml
+|   ├── grafana.yaml
+|   ├── iot-stream.yaml
+|   ├── minio.yaml
+|   ├── postgres.yaml
+|   └── training-environment.yaml
 ├── svc/
-│   ├── iotdata.yaml
-│   ├── postgres.yaml
-|   ├── ...
-│   └── kustomization.yaml
+│   ├── data-catalogue.yaml
+│   ├── keycloak.yaml
+│   ├── kustomization.yaml
+|   ├── data-pipeline.yaml
+|   ├── grafana.yaml
+|   ├── iot-stream.yaml
+|   ├── minio.yaml
+|   ├── postgres.yaml
+|   └── training-environment.yaml
 ├── pvcs/
 │   ├── keycloak.yaml
 │   ├── iotdata.yaml
@@ -55,40 +70,59 @@ k8s/
 ├── secrets/
 |    ├── postgres.yaml
 |    ├── keycloak.yaml
+|    ├── grafana.yaml
+|    ├── minio.yaml
+|    ├── docker.yaml
 │    └── kustomization.yaml
 ├── storageclass/
-|    ├── aws-ebs-sc.yaml
+|    ├── aws-sc.yaml
 │    └── kustomization.yaml
 ├── namespace/
 |    ├── nemo.yaml
 │    └── kustomization.yaml
-├── kustomization.yaml
-├── tmp.yaml                  # Deployment sequence generated w/ `kubectl kustomize . > tmp.yaml` (where . stands for the root dir (/k8s))
+├── ingressclass/
+|    ├── ingressclass.yaml
+│    └── kustomization.yaml
+├── ingress/
+|    ├── ingress.yaml
+│    └── kustomization.yaml
+└── kustomization.yaml
 ```
 
 
 ### Deployment Order
 
-1.  **Namespace and Storage Class**
-    
-2.  **Persistent Volumes**
-    
-3.  **PostgreSQL**
-    
-4.  **Keycloak**
+When using Kustomize overlays, deploying the root `kustomization.yaml` file will do the magic.
+Kustomize will sort and organize the resources in the correct order for you.
+Hereafter, you can find the order if you prefer to proceed manual, piece meal.
 
-5. **Grafana**
+1.  **Namespace**
+
+2.   **Storage Class**
     
-6.  **IoT Stream**
+3.  **Persistent Volumes**
+
+4. **Secrets**
     
-7.  **Data Pipeline**
+5.  **PostgreSQL**
     
-8.  **Data Catalogue**
+6.  **Keycloak**
+
+7.  **Grafana**
     
-9.  **Predictive Analysis**  # Training_env
+8.  **IoT Stream**
+    
+9.  **Data Pipeline**
+    
+10.  **Data Catalogue**
+    
+11.  **training-environment**  # Predictive Analysis
+
+12. **IngressClass**
+
+13. **Ingress**
 
 
-Each component is deployed using Kustomize overlays, making it easy to manage and extend.
 
 # Installation
 
@@ -98,22 +132,31 @@ Each component is deployed using Kustomize overlays, making it easy to manage an
 >     
 > *   kubectl and kustomize installed
 >     
-> *   IAM roles, EBS CSI driver, and necessary AWS permissions in place
+> *   IAM roles, EBS CSI driver, and necessary AWS permissions in place.
+>
+> As part of the AWS setup, we created dedicated IAM entities (roles, policies, and service accounts) to grant the required permissions for each component running in the EKS cluster.
+>Where possible, IRSA (IAM Roles for Service Accounts) has been leveraged, ensuring that pods only receive the exact permissions they need without relying on node-level IAM roles.
+>This improves security, auditability, and follows AWS best practices.
 >     
 
-The installation can eiter be done using the usual `kubectl apply -f filename.yaml` or via kustomize (`kubectl apply -k folder/`), adding piece cake every component.
+For more information concerning the AWS K8s exposure, please visit the [AWS official Docs](https://aws.amazon.com/blogs/containers/exposing-kubernetes-applications-part-1-service-and-ingress-resources/) 
+
+
+The manual installation can be done using the usual `kubectl apply -f filename.yaml`.
+
 
 ### 1\. Clone the Repository
 
-`$ git clone https://your-repo-url.git`
+`$ git clone https://github.com/martel-innovate/eros4nrg-k8s.git`
 
-`$ cd your-repo/k8s`
+For the Kustomize deployment, just `cd` into the cloned repo and issue `kubectl apply -k kustomization.yaml` while for the manual installation, follow the steps below:
+
 
 ### 2\. Deploy the Namespace and StorageClass
 
-`   kubectl apply -k namespace/   `
+`   kubectl apply -k namespace/   ` or `   kubectl apply -f namespace/nemo.yaml   `
 
-`   kubectl apply -k storageclass/   `
+`   kubectl apply -k storageclass/   ` or `   kubectl apply -f storageclass/aws-sc.yaml   `
 
 This step sets up:
 
@@ -121,22 +164,21 @@ This step sets up:
     
 *   EBS-backed StorageClass
     
-*   Optional ConfigMaps for Grafana or initial settings
-    
 
 ### 3\. Apply Persistent Volume Claims
 
-`   kubectl apply -k pvcs/   `
+`   kubectl apply -k pvcs/` or `   kubectl apply -f pvcs/[filename].yaml   `
 
 ### 4\. Deploy Components One at a Time 
 
-Deploy each component
 
-- Using `kubectl apply`
+### Using `kubectl apply -f filename.yaml`
 
 ```
 Example:
-Deploy PostgreSQL Deploy + svc + PVC:
+#################################################
+##### Deploy PostgreSQL Deploy + svc + PVC: #####
+#################################################
 
 $ kubectl apply -f pvcs/postgres.yaml
 
@@ -145,14 +187,14 @@ $ kubectl apply -f deploy/postgres.yaml
 $ kubectl apply -f svc/postgres.yaml
 ```
 
-- Using `kustomizer`
-
-Example:
-Deploy PostgreSQL Deploy + svc + PVC:
-
-Our `k8s/kustomization.yaml` will look like:
+Whether you'd like to deploy pieces of infrastructure using Kustomize, you can create a new kustomization.yaml file at the repo's root (replacing the default one which is complete -- can be done issuing `mv kustomization.yaml kustomization.yaml.bak && touch kustomization.yaml`) and tweak the newly created file as per your needs.
 
 ```
+Example:
+#################################################
+##### Deploy PostgreSQL Deploy + svc + PVC: #####
+#################################################
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -177,9 +219,29 @@ resources:
 - postgres.yaml
 ```
 
+### Example (svc/kustomization.yaml)
+
+```
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- postgres.yaml
+```
+
+### Example (deploy/kustomization.yaml)
+
+```
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- postgres.yaml
+```
+
 And so on for every other subfolder.
 
-Kustomizer enables us to logically split our project in modules for better and granular deployments, enabling clarity and improving maintenance activities.
+Kustomize enables us to logically split our project in modules for better and granular deployments, enabling clarity and improving maintenance activities.
 
 
 # Usage
@@ -204,12 +266,25 @@ To access services:
 *   Query the **Data Catalogue** API at /api/v1/
     
 *   Authenticate users or services via the **Keycloak** login endpoint.
+
+If you have historical data to import, there are several ways for doing that:
+
+1. Use `kubectl cp` to copy the .sql or .dump file into the postgres pod
+2. Mount the file on the postgres volume.
+3. Mount the file using ConfigMaps.
+
+Whatever choice you make, once the file is uploaded, get a shell into the pod
+
+`$ kubectl -n nemo exec -it podname -- sh`
+
+and issue
+
+`$ psql -U admin -d data < yourdump.sql`
+
+For more info, please visit the [PostgreSQL official docs](https://www.postgresql.org/docs/8.1/backup.html)
     
 
 # Configuration
-
-🔧 Configuration
-----------------
 
 The platform relies on a few key configuration areas across Kubernetes and service-level settings:
 
@@ -244,39 +319,44 @@ allowVolumeExpansion: true
 
 ### 3\. **Secrets & Environment Variables**
 
-*   Database credentials, API keys, and Keycloak secrets should be provided using Kubernetes **Secrets**.
+*   Database credentials, Service account's pwds, and Keycloak secrets and Docker pvt registry token should be provided using Kubernetes **Secrets**.
     
 *   Each deployment file may include envFrom or env definitions to inject config into pods.
     
 
 ### 4\. **Ingress & Service Exposure**
 
-Ingress resources are defined to route external traffic to internal services. Be sure to set the correct host values and TLS settings if applicable.
+In this deployment we rely on the **AWS Application Load Balancer (ALB) Ingress Controller**, which automatically provisions an ALB and configures it to expose Kubernetes services to the outside world.
+The ALB handles:
+
+- HTTP/HTTPS termination (with support for AWS ACM-managed SSL certificates).
+
+- Path and host-based routing to backend services (e.g., Grafana, Data Catalogue).
+
+- Integration with AWS security groups and IAM for fine-grained access control.
+
+**If you deploy this stack outside AWS, make sure to replace the ALB Ingress Controller with a different implementation (e.g., NGINX Ingress Controller) and adapt the annotations accordingly.**
+
+Our Ingress exposes `grafana` and `data catalogue` (FastAPI).
 
 
 # Docker-Images
 
 Each component is containerized and should be built and pushed to a container registry (e.g., ECR, Docker Hub).
-
-Images can be built using the DockerFiles of each component.
-
-- [data-catalogue](../data_catalogue/DockerFile)
-- [data-pipeline](../data_pipeline/DockerFile)
-- [iot-streams](../iot_streams/DockerFile)
-- [training-environment](../training_environment/DockerFile)
-
-Note that those images (in our scenario) are hosted on a private registry and this is why whe use 
+Note that those images (in our scenario) are hosted on a private registry and this is why we use 
 
 ```
 imagePullSecrets:
         - name: marco-regcred
 ```
-in our deployments.
+in our deployments. 
+
+Make sure you replace that with your own image pull secret.
 
 ### ⚠️ Each image should:
 
 
-*   Expose required ports (e.g., 8000 for FastAPI)
+*   Expose required ports (e.g., 8003 for FastAPI)
     
 *   Use minimal base images with specific versions (not latest)
     
