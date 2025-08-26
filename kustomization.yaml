@@ -12,3 +12,4 @@ resources:
 - storageclass/
 - ingress/
 - ingressclass/
+- jobs/

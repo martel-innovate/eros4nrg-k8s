@@ -1,0 +1,4861 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nemo
+---
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-auto-sc
+parameters:
+  encrypted: "true"
+  fsType: ext4
+  type: gp2
+provisioner: ebs.csi.eks.amazonaws.com
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+data:
+  asm_terni.json: |-
+    {
+      "__inputs": [
+        {
+          "name": "DS_POSTGRESQL",
+          "label": "PostgreSQL",
+          "description": "",
+          "type": "datasource",
+          "pluginId": "postgres",
+          "pluginName": "PostgreSQL"
+        }
+      ],
+      "__elements": {},
+      "__requires": [
+        {
+          "type": "grafana",
+          "id": "grafana",
+          "name": "Grafana",
+          "version": "9.2.2"
+        },
+        {
+          "type": "datasource",
+          "id": "postgres",
+          "name": "PostgreSQL",
+          "version": "1.0.0"
+        },
+        {
+          "type": "panel",
+          "id": "timeseries",
+          "name": "Time series",
+          "version": ""
+        }
+      ],
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "${DS_POSTGRESQL}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "id": 2,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${DS_POSTGRESQL}"
+              },
+              "format": "time_series",
+              "group": [],
+              "metricColumn": "none",
+              "rawQuery": false,
+              "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  w4_building_consumption\nFROM w4_calc\nWHERE\n  $__timeFilter(\"timestamp\")\nORDER BY 1",
+              "refId": "A",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "w4_building_consumption"
+                    ],
+                    "type": "column"
+                  }
+                ]
+              ],
+              "table": "w4_calc",
+              "timeColumn": "\"timestamp\"",
+              "timeColumnType": "timestamp",
+              "where": [
+                {
+                  "name": "$__timeFilter",
+                  "params": [],
+                  "type": "macro"
+                }
+              ]
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${DS_POSTGRESQL}"
+              },
+              "format": "time_series",
+              "group": [],
+              "hide": true,
+              "metricColumn": "none",
+              "rawQuery": false,
+              "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  w4_building_consumption AS \"catboost_forecast\"\nFROM predicted_w4_building_consumption_cat\nWHERE\n  $__timeFilter(\"timestamp\")\nORDER BY 1",
+              "refId": "C",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "w4_building_consumption"
+                    ],
+                    "type": "column"
+                  },
+                  {
+                    "params": [
+                      "catboost_forecast"
+                    ],
+                    "type": "alias"
+                  }
+                ]
+              ],
+              "table": "predicted_w4_building_consumption_cat",
+              "timeColumn": "\"timestamp\"",
+              "timeColumnType": "timestamp",
+              "where": [
+                {
+                  "name": "$__timeFilter",
+                  "params": [],
+                  "type": "macro"
+                }
+              ]
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${DS_POSTGRESQL}"
+              },
+              "format": "time_series",
+              "group": [],
+              "hide": true,
+              "metricColumn": "none",
+              "rawQuery": false,
+              "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  w4_building_consumption AS \"MLP_forecast\"\nFROM \"MLP_forecast_calc\"\nWHERE\n  $__timeFilter(\"timestamp\")\nORDER BY 1",
+              "refId": "B",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "w4_building_consumption"
+                    ],
+                    "type": "column"
+                  },
+                  {
+                    "params": [
+                      "MLP_forecast"
+                    ],
+                    "type": "alias"
+                  }
+                ]
+              ],
+              "table": "\"MLP_forecast_calc\"",
+              "timeColumn": "\"timestamp\"",
+              "timeColumnType": "timestamp",
+              "where": [
+                {
+                  "name": "$__timeFilter",
+                  "params": [],
+                  "type": "macro"
+                }
+              ]
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "${DS_POSTGRESQL}"
+              },
+              "format": "time_series",
+              "group": [],
+              "hide": false,
+              "metricColumn": "none",
+              "rawQuery": false,
+              "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  w4_building_consumption AS \"prophet_forecast\"\nFROM prophet_forecast_w4_building_consumption\nWHERE\n  $__timeFilter(\"timestamp\")\nORDER BY 1",
+              "refId": "D",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "w4_building_consumption"
+                    ],
+                    "type": "column"
+                  },
+                  {
+                    "params": [
+                      "prophet_forecast"
+                    ],
+                    "type": "alias"
+                  }
+                ]
+              ],
+              "table": "prophet_forecast_w4_building_consumption",
+              "timeColumn": "\"timestamp\"",
+              "timeColumnType": "timestamp",
+              "where": [
+                {
+                  "name": "$__timeFilter",
+                  "params": [],
+                  "type": "macro"
+                }
+              ]
+            }
+          ],
+          "title": "WALLY 4 Calculation",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": false,
+      "schemaVersion": 37,
+      "style": "dark",
+      "tags": [],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-7d",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "ASM Terni",
+      "uid": "T75TzkpNk",
+      "version": 10,
+      "weekStart": ""
+    }
+kind: ConfigMap
+metadata:
+  name: grafana-asm-terni-dashboard-k8f479f4dc
+  namespace: nemo
+---
+apiVersion: v1
+data:
+  all.yaml: |-
+    - name: 'default'
+      org_id: 1
+      folder: ''
+      type: 'file'
+      options:
+        folder: '/opt/bitnami/grafana/data/custom_dashboards/'
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-b64t6cftmc
+  namespace: nemo
+---
+apiVersion: v1
+data:
+  all.yaml: |
+    apiVersion: 1
+
+    datasources:
+      - name: Postgres
+        type: postgres
+        url: postgres:5432
+        user: admin
+        database: data
+        uid: postgres-eros
+        secureJsonData:
+          password: 'abc123'
+        jsonData:
+          database: data
+          sslmode: 'disable' # disable/require/verify-ca/verify-full
+          maxOpenConns: 100
+          maxIdleConns: 100
+          maxIdleConnsAuto: true
+          connMaxLifetime: 14400
+          #postgresVersion: 1430 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
+          timescaledb: false
+kind: ConfigMap
+metadata:
+  name: grafana-datasources-5kkkt76fgh
+  namespace: nemo
+---
+apiVersion: v1
+data:
+  emotion.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "postgres-eros"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "id": 35,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "format": "time_series",
+              "group": [],
+              "hide": false,
+              "metricColumn": "none",
+              "rawQuery": true,
+              "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage\nFROM \"vehicle_states\"\nWHERE\n  vehicle = $vehicle",
+              "refId": "A",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "battery_percentage"
+                    ],
+                    "type": "column"
+                  }
+                ]
+              ],
+              "table": "\"vehicle_states\"",
+              "timeColumn": "\"timestamp\"",
+              "timeColumnType": "timestamp",
+              "where": [
+                {
+                  "name": "$__timeFilter",
+                  "params": [],
+                  "type": "macro"
+                }
+              ]
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "format": "time_series",
+              "group": [],
+              "hide": false,
+              "metricColumn": "none",
+              "rawQuery": true,
+              "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as \"forecast\"\nFROM predicted_battery_percentage_cat\nWHERE\n  vehicle = '$vehicle'\nORDER BY 1",
+              "refId": "B",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "forecasted_battery_percentage"
+                    ],
+                    "type": "column"
+                  }
+                ]
+              ],
+              "table": "predicted_battery",
+              "timeColumn": "forecast_timestamp",
+              "timeColumnType": "timestamp",
+              "where": [
+                {
+                  "name": "$__timeFilter",
+                  "params": [],
+                  "type": "macro"
+                },
+                {
+                  "datatype": "int8",
+                  "name": "",
+                  "params": [
+                    "vehicle",
+                    "=",
+                    "'$vehicle'"
+                  ],
+                  "type": "expression"
+                }
+              ]
+            }
+          ],
+          "title": "Predicted battery percentage",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 8
+          },
+          "id": 22,
+          "panels": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 9
+              },
+              "id": 28,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "table",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle1\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 1",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "table",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle2\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 2",
+                  "refId": "B",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "table",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle3\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 3",
+                  "refId": "C",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "table",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle4\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 4",
+                  "refId": "D",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "table",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle5\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 5",
+                  "refId": "E",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "table",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle6\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 6",
+                  "refId": "F",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle7\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 7",
+                  "refId": "G",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle8\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 8",
+                  "refId": "H",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle9\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 9",
+                  "refId": "I",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle10\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 10",
+                  "refId": "J",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle11\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 11",
+                  "refId": "K",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle12\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 12",
+                  "refId": "L",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle13\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 13",
+                  "refId": "M",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle14\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 14",
+                  "refId": "N",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle15\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 15",
+                  "refId": "O",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle16\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 16",
+                  "refId": "P",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle17\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 17",
+                  "refId": "Q",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle18\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 18",
+                  "refId": "R",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Total km history across all vehicles",
+              "transformations": [],
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 9
+              },
+              "id": 26,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle1\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 1\nORDER BY 1",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle2\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 2\nORDER BY 1",
+                  "refId": "B",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle3\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 3\nORDER BY 1",
+                  "refId": "C",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle4\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 4\nORDER BY 1",
+                  "refId": "D",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle5\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 5\nORDER BY 1",
+                  "refId": "E",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle6\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 6\nORDER BY 1",
+                  "refId": "F",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle7\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 7\nORDER BY 1",
+                  "refId": "G",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle8\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 8\nORDER BY 1",
+                  "refId": "H",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle9\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 9\nORDER BY 1",
+                  "refId": "I",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle10\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 10\nORDER BY 1",
+                  "refId": "J",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle11\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 11\nORDER BY 1",
+                  "refId": "K",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle12\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 12\nORDER BY 1",
+                  "refId": "L",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle13\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 13\nORDER BY 1",
+                  "refId": "M",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle14\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 14\nORDER BY 1",
+                  "refId": "N",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle15\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 15\nORDER BY 1",
+                  "refId": "O",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle16\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 16\nORDER BY 1",
+                  "refId": "P",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle17\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 17\nORDER BY 1",
+                  "refId": "Q",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged as float) as vehicle18\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 18\nORDER BY 1",
+                  "refId": "R",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Charged kWh history across all vehicles",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 17
+              },
+              "id": 24,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "pluginVersion": "9.2.2",
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle1\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 1\nORDER BY 1",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle2\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 2\nORDER BY 1",
+                  "refId": "B",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle3\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 3\nORDER BY 1",
+                  "refId": "C",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle4\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 4\nORDER BY 1",
+                  "refId": "D",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle5\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 5\nORDER BY 1",
+                  "refId": "E",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle6\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 6\nORDER BY 1",
+                  "refId": "F",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle7\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 7\nORDER BY 1",
+                  "refId": "G",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle8\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 8\nORDER BY 1",
+                  "refId": "H",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle9\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 9\nORDER BY 1",
+                  "refId": "I",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle10\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 10\nORDER BY 1",
+                  "refId": "J",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle11\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 11\nORDER BY 1",
+                  "refId": "K",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle12\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 12\nORDER BY 1",
+                  "refId": "L",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle13\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 13\nORDER BY 1",
+                  "refId": "M",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle14\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 14\nORDER BY 1",
+                  "refId": "N",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle15\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 15\nORDER BY 1",
+                  "refId": "O",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle16\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 16\nORDER BY 1",
+                  "refId": "P",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle17\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 17\nORDER BY 1",
+                  "refId": "Q",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count as vehicle18\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 18\nORDER BY 1",
+                  "refId": "R",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Amount of charges history across all vehicles",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 17
+              },
+              "id": 30,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle1\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 1\nORDER BY 1",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle2\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 2\nORDER BY 1",
+                  "refId": "B",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle3\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 3\nORDER BY 1",
+                  "refId": "C",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle4\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 4\nORDER BY 1",
+                  "refId": "D",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle5\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 5\nORDER BY 1",
+                  "refId": "E",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle6\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 6\nORDER BY 1",
+                  "refId": "F",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle7\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 7\nORDER BY 1",
+                  "refId": "G",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle8\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 8\nORDER BY 1",
+                  "refId": "H",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle9\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 9\nORDER BY 1",
+                  "refId": "I",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle10\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 10\nORDER BY 1",
+                  "refId": "J",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle11\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 11\nORDER BY 1",
+                  "refId": "K",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle12\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 12\nORDER BY 1",
+                  "refId": "L",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle13\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 13\nORDER BY 1",
+                  "refId": "M",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle14\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 14\nORDER BY 1",
+                  "refId": "N",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle15\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 15\nORDER BY 1",
+                  "refId": "O",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle16\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 16\nORDER BY 1",
+                  "refId": "P",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle17\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 17\nORDER BY 1",
+                  "refId": "Q",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage as vehicle18\nFROM \"vehicle_states\"\nWHERE\n  $__timeFilter(\"timestamp\")\nand vehicle = 18\nORDER BY 1",
+                  "refId": "R",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Battery percentage history across all vehicles",
+              "type": "timeseries"
+            }
+          ],
+          "title": "General",
+          "type": "row"
+        },
+        {
+          "collapsed": true,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 9
+          },
+          "id": 20,
+          "panels": [
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 2
+              },
+              "id": 31,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle1\nFROM \"vehicle_states\"\nWHERE\n  vehicle = $vehicle",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Individual vehicle km total",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 2
+              },
+              "id": 12,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  CAST(kwh_charged AS float)\nFROM \"vehicle_states\"\nWHERE\n  vehicle = $vehicle",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Individual vehicle kWh charged",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 10
+              },
+              "id": 6,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  charges_count\nFROM \"vehicle_states\"\nWHERE\n  vehicle = $vehicle",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "charges_count"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Individual vehicle charge count",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 10
+              },
+              "id": 33,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage\nFROM \"vehicle_states\"\nWHERE\n  vehicle = $vehicle",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Individual vehicle battery %",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 18
+              },
+              "id": 14,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 3",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 8",
+                  "refId": "B",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 1",
+                  "refId": "C",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  battery_percentage\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 9",
+                  "refId": "D",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Battery Pecentage for vehicle 1,3,8,9",
+              "type": "timeseries"
+            },
+            {
+              "datasource": {
+                "type": "postgres",
+                "uid": "postgres-eros"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green"
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 18
+              },
+              "id": 16,
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "targets": [
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle1\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 1",
+                  "refId": "A",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle2\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 2",
+                  "refId": "B",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle3\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 3",
+                  "refId": "C",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                },
+                {
+                  "datasource": {
+                    "type": "postgres",
+                    "uid": "postgres-eros"
+                  },
+                  "format": "time_series",
+                  "group": [],
+                  "hide": false,
+                  "metricColumn": "none",
+                  "rawQuery": true,
+                  "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  km_tot as vehicle4\nFROM \"vehicle_states\"\nWHERE\n  vehicle = 4",
+                  "refId": "D",
+                  "select": [
+                    [
+                      {
+                        "params": [
+                          "battery_percentage"
+                        ],
+                        "type": "column"
+                      }
+                    ]
+                  ],
+                  "table": "\"vehicle_states\"",
+                  "timeColumn": "\"timestamp\"",
+                  "timeColumnType": "timestamp",
+                  "where": [
+                    {
+                      "name": "$__timeFilter",
+                      "params": [],
+                      "type": "macro"
+                    }
+                  ]
+                }
+              ],
+              "title": "Km total for vehicle 1,2,3,4",
+              "type": "timeseries"
+            }
+          ],
+          "title": "Use-case",
+          "type": "row"
+        }
+      ],
+      "refresh": false,
+      "schemaVersion": 37,
+      "style": "dark",
+      "tags": [],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "selected": false,
+              "text": "1",
+              "value": "1"
+            },
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-eros"
+            },
+            "definition": "SELECT vehicle FROM vehicle",
+            "hide": 0,
+            "includeAll": false,
+            "label": "vehicle",
+            "multi": false,
+            "name": "vehicle",
+            "options": [],
+            "query": "SELECT vehicle FROM vehicle",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 3,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "2025-08-19T06:10:27.308Z",
+        "to": "2025-08-21T10:23:37.182Z"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "EMOTION",
+      "uid": "QKK8QZzHk",
+      "version": 1,
+      "weekStart": ""
+    }
+kind: ConfigMap
+metadata:
+  name: grafana-emotion-dashboard-9gfc4httd9
+  namespace: nemo
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-builtin-admin
+  namespace: nemo
+stringData:
+  password: abc123
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-builtin-admin
+  namespace: nemo
+stringData:
+  password: abc123
+  username: admin
+type: Opaque
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJtYXJjb3RoZWRvb2QiLCJwYXNzd29yZCI6ImRja3JfcGF0X3B5SXBXVWtkZXRTeDBvaHNJUlpBdDNWR1RqRSIsImVtYWlsIjoibWFyY28ubWVkZGVAb3V0bG9vay5pdCIsImF1dGgiOiJiV0Z5WTI5MGFHVmtiMjlrT21SamEzSmZjR0YwWDNCNVNYQlhWV3RrWlhSVGVEQnZhSE5KVWxwQmRETldSMVJxUlE9PSJ9fX0=
+kind: Secret
+metadata:
+  name: marco-regcred
+  namespace: nemo
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-builtin-admin
+  namespace: nemo
+stringData:
+  password: mylongpassword
+  username: admin
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-users
+  namespace: nemo
+stringData:
+  admin.password: abc123
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: data-catalogue
+  name: data-catalogue
+  namespace: nemo
+spec:
+  ports:
+  - name: "8003"
+    port: 8003
+    targetPort: 8003
+  selector:
+    app: data-catalogue
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: data-pipeline
+  name: data-pipeline
+  namespace: nemo
+spec:
+  ports:
+  - name: "8002"
+    port: 8002
+    targetPort: 8002
+  selector:
+    app: data-pipeline
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: nemo
+spec:
+  ports:
+  - name: grafana
+    port: 3000
+    targetPort: 3000
+  selector:
+    app: grafana
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: iot-stream
+  name: iot-stream
+  namespace: nemo
+spec:
+  ports:
+  - name: iot-stream
+    port: 3000
+    targetPort: 3000
+  selector:
+    app: iot-stream
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: keycloak
+  name: keycloak
+  namespace: nemo
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: keycloak
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: minio
+  name: minio
+  namespace: nemo
+spec:
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+  - name: console
+    port: 9001
+    targetPort: 9001
+  selector:
+    app: minio
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgres
+  name: postgres
+  namespace: nemo
+spec:
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: training-environment
+  name: training-environment
+  namespace: nemo
+spec:
+  ports:
+  - name: training-environment
+    port: 8004
+    targetPort: 8004
+  selector:
+    app: training-environment
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: iotdata
+  namespace: nemo
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ebs-auto-sc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: keycloak-pvc
+  namespace: nemo
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ebs-auto-sc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: nemo
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 15Gi
+  storageClassName: ebs-auto-sc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: data-catalogue
+  name: data-catalogue
+  namespace: nemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-catalogue
+  template:
+    metadata:
+      labels:
+        app: data-catalogue
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          value: data
+        - name: POSTGRES_HOST
+          value: postgres
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          value: admin
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: admin.password
+              name: postgres-users
+        image: marcothedood/eros4nrg-demo:data-catalogue-v1.6
+        imagePullPolicy: Always
+        name: data-catalogue
+        ports:
+        - containerPort: 8003
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+      imagePullSecrets:
+      - name: marco-regcred
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: data-pipeline
+  name: data-pipeline
+  namespace: nemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-pipeline
+  template:
+    metadata:
+      labels:
+        app: data-pipeline
+    spec:
+      containers:
+      - env:
+        - name: MINIO_DEFAULT_BUCKETS
+          value: iotdata
+        - name: MINIO_ENDPOINT
+          value: minio:9000
+        - name: MINIO_PORT
+          value: "9000"
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: minio-builtin-admin
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: minio-builtin-admin
+        - name: POSTGRES_DB
+          value: data
+        - name: POSTGRES_HOST
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: admin.password
+              name: postgres-users
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          value: admin
+        image: marcothedood/eros4nrg-demo:data-pipeline
+        name: data-pipeline
+        ports:
+        - containerPort: 8002
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+      imagePullSecrets:
+      - name: marco-regcred
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: nemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: grafana-builtin-admin
+        image: docker.io/bitnami/grafana:9.2.2
+        name: grafana
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /opt/bitnami/grafana/data/custom_dashboards/emotion.json
+          name: emotion
+          subPath: emotion.json
+        - mountPath: /opt/bitnami/grafana/data/custom_dashboards/asm_terni.json
+          name: asm-terni
+          subPath: asm_terni.json
+        - mountPath: /opt/bitnami/grafana/conf/provisioning/dashboards/all.yaml
+          name: grafana-dashboards
+          subPath: all.yaml
+        - mountPath: /opt/bitnami/grafana/conf/provisioning/datasources/all.yaml
+          name: grafana-datasources
+          subPath: all.yaml
+      volumes:
+      - configMap:
+          name: grafana-emotion-dashboard-9gfc4httd9
+        name: emotion
+      - configMap:
+          name: grafana-asm-terni-dashboard-k8f479f4dc
+        name: asm-terni
+      - configMap:
+          name: grafana-dashboards-b64t6cftmc
+        name: grafana-dashboards
+      - configMap:
+          name: grafana-datasources-5kkkt76fgh
+        name: grafana-datasources
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: iot-stream
+  name: iot-stream
+  namespace: nemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iot-stream
+  template:
+    metadata:
+      labels:
+        app: iot-stream
+    spec:
+      containers:
+      - env:
+        - name: MINIO_DEFAULT_BUCKETS
+          value: iotdata
+        - name: MINIO_ENDPOINT
+          value: minio:9000
+        - name: MINIO_PORT
+          value: "9000"
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: minio-builtin-admin
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: minio-builtin-admin
+        image: marcothedood/eros4nrg-demo:iot-stream
+        name: iot-stream
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+      imagePullSecrets:
+      - name: marco-regcred
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: keycloak
+  name: keycloak
+  namespace: nemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - args:
+        - start
+        env:
+        - name: KC_HTTP_ENABLED
+          value: "true"
+        - name: KC_HTTP_RELATIVE_PATH
+          value: /keycloak/
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KC_HOSTNAME_STRICT_HTTPS
+          value: "false"
+        - name: KC_HEALTH_ENABLED
+          value: "true"
+        - name: KEYCLOAK_ADMIN
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: keycloak-builtin-admin
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: keycloak-builtin-admin
+        image: quay.io/keycloak/keycloak:21.1.2
+        name: keycloak
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /keycloak/realms/master
+            port: 8080
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsGroup: 1000
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /opt/keycloak/data/h2/
+          name: h2-volume
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsUser: 1000
+      volumes:
+      - name: h2-volume
+        persistentVolumeClaim:
+          claimName: keycloak-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: minio
+  name: minio
+  namespace: nemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - env:
+        - name: MINIO_DEFAULT_BUCKETS
+          value: iotdata
+        - name: MINIO_SERVER_ADDRESS
+          value: :9000
+        - name: MINIO_CONSOLE_ADDRESS
+          value: :9001
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: minio-builtin-admin
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: minio-builtin-admin
+        image: bitnami/minio:latest
+        name: minio
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        - containerPort: 9001
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /data
+          name: iotdata
+      volumes:
+      - name: iotdata
+        persistentVolumeClaim:
+          claimName: iotdata
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: postgres
+  name: postgres
+  namespace: nemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: admin.password
+              name: postgres-users
+        - name: POSTGRES_USER
+          value: admin
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        image: postgres:14-alpine
+        imagePullPolicy: IfNotPresent
+        name: postgres
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: pg-volume
+      volumes:
+      - name: pg-volume
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: training-environment
+  name: training-environment
+  namespace: nemo
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: training-environment
+  template:
+    metadata:
+      labels:
+        app: training-environment
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          value: data
+        - name: POSTGRES_HOST
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: admin.password
+              name: postgres-users
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          value: admin
+        image: marcothedood/eros4nrg-demo:training-environment
+        name: training-environment
+        ports:
+        - containerPort: 8004
+          protocol: TCP
+      imagePullSecrets:
+      - name: marco-regcred
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: ""
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/target-type: ip
+    external-dns.alpha.kubernetes.io/hostname: grafana.eros4nrg.eu,catalogue.eros4nrg.eu
+    ingressClassName: alb
+  name: eros4nrg-ingress
+  namespace: nemo
+spec:
+  rules:
+  - host: grafana.eros4nrg.eu
+    http:
+      paths:
+      - backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
+  - host: catalogue.eros4nrg.eu
+    http:
+      paths:
+      - backend:
+          service:
+            name: data-catalogue
+            port:
+              number: 8003
+        path: /
+        pathType: Prefix
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+  name: alb
+spec:
+  controller: ingress.k8s.aws/alb
