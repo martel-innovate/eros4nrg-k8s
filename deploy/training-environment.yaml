@@ -3,22 +3,27 @@ kind: Deployment
 metadata:
   name: training-environment
   labels:
-    app: training-environment
+    app: eros
+    type: backend
+    deployment: training-environment
 spec:
   replicas: 0
   selector:
     matchLabels:
-      app: training-environment
+      pod: training-environment
   template:
     metadata:
       labels:
-        app: training-environment
+        app: eros
+        type: backend
+        deployment: training-environment
     spec:
       imagePullSecrets:
-        - name: marco-regcred
+        - name: nemo-regcred
       containers:
         - name: training-environment
           image: marcothedood/eros4nrg-demo:training-environment
+          imagePullPolicy: Always
           ports:
             - containerPort: 8004
               protocol: TCP

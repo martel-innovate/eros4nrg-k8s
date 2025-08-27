@@ -1,13 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: grafana
   name: grafana
+  labels:
+    app: eros
+    type: frontend
+    service: grafana
 spec:
-  ports:
-  - port: 3000
-    targetPort: 3000
-    name: grafana
   selector:
-    app: grafana
+    app: eros
+    type: frontend
+    deployment: grafana
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP

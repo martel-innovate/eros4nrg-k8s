@@ -2,19 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
+  labels:
+    app: eros
+    type: frontend
+    deployment: grafana
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grafana
+      pod: grafana
   template:
     metadata:
       labels:
-        app: grafana
+        app: eros
+        type: frontend
+        deployment: grafana
     spec:
       containers:
         - name: grafana
           image: docker.io/bitnami/grafana:9.2.2
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
               protocol: TCP

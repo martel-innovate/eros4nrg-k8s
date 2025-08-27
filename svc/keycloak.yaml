@@ -3,11 +3,16 @@ kind: Service
 metadata:
   name: keycloak
   labels:
-    app: keycloak
+    app: eros
+    type: backend
+    service: keycloak
 spec:
-  ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
   selector:
-    app: keycloak
+    app: eros
+    type: backend
+    deployment: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP

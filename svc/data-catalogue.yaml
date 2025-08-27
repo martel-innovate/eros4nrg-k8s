@@ -3,11 +3,16 @@ kind: Service
 metadata:
   name: data-catalogue
   labels:
-    app: data-catalogue
+    app: eros
+    type: frontend
+    service: data-catalogue
 spec:
-  ports:
-    - name: "8003"
-      port: 8003 
-      targetPort: 8003
   selector:
-    app: data-catalogue
+    app: eros
+    type: frontend
+    deployment: data-catalogue
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8003
+  type: ClusterIP

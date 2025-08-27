@@ -3,11 +3,16 @@ kind: Service
 metadata:
   name: data-pipeline
   labels:
-    app: data-pipeline
+    app: eros
+    type: backend
+    service: data-pipeline
 spec:
-  ports:
-    - name: "8002"
-      port: 8002 
-      targetPort: 8002
   selector:
-    app: data-pipeline
+    app: eros
+    type: backend
+    deployment: data-pipeline
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002
+  type: ClusterIP

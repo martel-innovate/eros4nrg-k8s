@@ -3,8 +3,14 @@ kind: Service
 metadata:
   name: minio
   labels:
-    app: minio
+    app: eros
+    type: backend
+    service: minio
 spec:
+  selector:
+    app: eros
+    type: backend
+    deployment: minio
   ports:
     - name: api
       port: 9000
@@ -12,5 +18,4 @@ spec:
     - name: console
       port: 9001
       targetPort: 9001
-  selector:
-    app: minio
+  type: ClusterIP

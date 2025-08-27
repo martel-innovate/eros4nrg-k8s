@@ -11,4 +11,4 @@ configMapGenerator:
       - dbschema.sql=./pg-bootstrap/exported_schema.sql
 
 generatorOptions:
-  disableNameSuffixHash: false
+  disableNameSuffixHash: true

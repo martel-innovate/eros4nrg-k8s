@@ -3,26 +3,27 @@ kind: Deployment
 metadata:
   name: data-pipeline
   labels:
-    app: data-pipeline
+    app: eros
+    type: backend
+    deployment: data-pipeline
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: data-pipeline
+      pod: data-pipeline
   template:
     metadata:
       labels:
-        app: data-pipeline
+        app: eros
+        type: backend
+        deployment: data-pipeline
     spec:
       imagePullSecrets:
-        - name: marco-regcred
+        - name: nemo-regcred
       containers:
         - name: data-pipeline
           image: marcothedood/eros4nrg-demo:data-pipeline
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "500m"
+          imagePullPolicy: Always
           ports:
             - containerPort: 8002
               protocol: TCP

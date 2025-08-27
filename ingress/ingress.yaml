@@ -1,21 +1,21 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: eros4nrg-ingress
+  name: eros-ingress
+  namespace: nemo-svc
   annotations:
-    ingressClassName: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}, {"HTTPS":443}]'
-    alb.ingress.kubernetes.io/ssl-redirect: '443'
-    alb.ingress.kubernetes.io/certificate-arn: [CERTIFICATE ARN]
-    external-dns.alpha.kubernetes.io/hostname: grafana.eros4nrg.eu,catalogue.eros4nrg.eu
-    # Redirect "/" -> "/docs" only on "catalogue"
-    # alb.ingress.kubernetes.io/actions.redirect-root: >
-    #   {"Type":"redirect","RedirectConfig":{"Path":"/docs","StatusCode":"HTTP_301"}}
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
 spec:
+  ingressClassName: "nginx"
+  tls:
+    - hosts:
+        - grafana.nemo.onelab.eu
+      secretName: grafana-tls
+    - hosts:
+        - catalogue.nemo.onelab.eu
+      secretName: data-catalogue-tls
   rules:
-    - host: grafana.eros4nrg.eu
+    - host: grafana.nemo.onelab.eu
       http:
         paths:
           - path: /
@@ -24,8 +24,8 @@ spec:
               service:
                 name: grafana
                 port:
-                  number: 3000
-    - host: catalogue.eros4nrg.eu
+                  number: 80
+    - host: catalogue.nemo.onelab.eu
       http:
         paths:
           - path: /
@@ -34,4 +34,4 @@ spec:
               service:
                 name: data-catalogue
                 port:
-                  number: 8003
+                  number: 80
