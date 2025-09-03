@@ -21,7 +21,7 @@ spec:
         image: postgres:14-alpine
         env:
           - name: PGHOST
-            value: eros-postgres
+            value: postgres
           - name: PGPORT
             value: "5432"
           - name: PGUSER
