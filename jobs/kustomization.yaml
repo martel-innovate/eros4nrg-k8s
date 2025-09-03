@@ -1,6 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: nemo
 
 resources:
   - pg-bootstrap.yaml
@@ -8,7 +7,11 @@ resources:
 configMapGenerator:
   - name: pg-schema
     files:
-      - dbschema.sql=./pg-bootstrap/exported_schema.sql
+      - 00_schemas.sql=./sql/00_schemas.sql
+      - 10_tables_core.sql=./sql/10_tables_core.sql
+      - 20_type_fixes.sql=./sql/20_type_fixes.sql
+      - 30_asserts.sql=./sql/30_asserts.sql
+      - 90_version_stamp.sql=./sql/90_version_stamp.sql
 
 generatorOptions:
-  disableNameSuffixHash: false
+  disableNameSuffixHash: true

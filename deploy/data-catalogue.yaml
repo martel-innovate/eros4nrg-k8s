@@ -18,11 +18,11 @@ spec:
         - name: marco-regcred
       containers:
         - name: data-catalogue
-          image: marcothedood/eros4nrg-demo:data-catalogue-v1.6
-          resources:
-            requests:
-              memory: "1Gi"
-              cpu: "500m"
+          image: marcothedood/eros4nrg-demo:data-catalogue-v1.7
+          # resources:
+          #   requests:
+          #     memory: "1Gi"
+          #     cpu: "500m"
           ports:
             - containerPort: 8003
               protocol: TCP

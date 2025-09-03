@@ -4,7 +4,7 @@ metadata:
   name: pg-bootstrap
 spec:
   backoffLimit: 0
-  ttlSecondsAfterFinished: 180
+  ttlSecondsAfterFinished: 300
   template:
     spec:
       restartPolicy: Never
@@ -13,51 +13,42 @@ spec:
           image: postgres:14-alpine
           env:
             - name: PGHOST
-              value: postgres
+              value: eros-postgres
             - name: PGPORT
               value: "5432"
             - name: PGUSER
               value: admin
+            - name: PGDATABASE
+              value: data
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres-users
                   key: admin.password
-            - name: PGDATABASE
-              value: data
+            - name: PGOPTIONS
+              value: "-c search_path=public,bootstrap"
           command: ["/bin/sh","-c"]
           args:
             - |
               set -euo pipefail
 
-              echo "Waiting for Postgres at ${PGHOST}:${PGPORT}..."
+              echo "[wait] Waiting for Postgres at ${PGHOST}:${PGPORT}..."
               until pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -t 3; do sleep 2; done
 
-              echo "Checking database ${PGDATABASE}..."
-              if ! psql -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${PGDATABASE}'" | grep -q 1; then
-                echo "Creating database ${PGDATABASE}..."
-                psql -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${PGDATABASE};"
-
-                echo "Applying dbschema.sql..."
-                psql -d "${PGDATABASE}" -v ON_ERROR_STOP=1 -f /schema/dbschema.sql
-
-                psql -d "${PGDATABASE}" -v ON_ERROR_STOP=1 -c "
-                  CREATE SCHEMA IF NOT EXISTS bootstrap;
-                  CREATE TABLE IF NOT EXISTS bootstrap.migrations(
-                    id text primary key,
-                    applied_at timestamptz default now()
-                  );
-                  INSERT INTO bootstrap.migrations(id) VALUES ('init-001') ON CONFLICT DO NOTHING;
-                "
-              else
-                echo "Database ${PGDATABASE} already exists. Skipping."
+              echo "[db] Ensuring database '${PGDATABASE}' exists..."
+              if ! psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${PGDATABASE}'" | grep -q 1; then
+                createdb -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" "$PGDATABASE"
               fi
 
-              echo "Bootstrap done."
+              echo "[schema] Applying SQL files in order ..."
+              for f in $(ls -1 /schema/*.sql | sort); do
+                echo ">> applying $f"
+                psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -f "$f"
+              done
+              echo "[done] Bootstrap complete."
           volumeMounts:
             - name: schema
-              mountPath: /schema/dbschema.sql
-              subPath: dbschema.sql
+              mountPath: /schema
       volumes:
         - name: schema
           configMap:

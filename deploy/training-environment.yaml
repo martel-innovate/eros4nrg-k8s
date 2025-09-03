@@ -15,10 +15,10 @@ spec:
         app: training-environment
     spec:
       imagePullSecrets:
-        - name: marco-regcred
+        - name: nemo-regcred
       containers:
         - name: training-environment
-          image: marcothedood/eros4nrg-demo:training-environment
+          image: nemometaos/eros-training-environment
           ports:
             - containerPort: 8004
               protocol: TCP
