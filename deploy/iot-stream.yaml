@@ -23,6 +23,8 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
+            - name: DEBUG
+              value: "1"
             - name: MINIO_DEFAULT_BUCKETS
               value: iotdata
             - name: MINIO_ENDPOINT
