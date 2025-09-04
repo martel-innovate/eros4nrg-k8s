@@ -45,7 +45,7 @@ spec:
             echo "Schema ready."
       containers:
         - name: data-pipeline
-          image: nemometaos/eros-data-pipeline
+          image: nemometaos/eros-data-pipeline:v0.1.1
           # resources:
           #   requests:
           #     memory: "1Gi"

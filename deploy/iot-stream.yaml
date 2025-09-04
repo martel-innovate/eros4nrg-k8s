@@ -18,7 +18,7 @@ spec:
         - name: nemo-regcred
       containers:
         - name: iot-stream
-          image: nemometaos/eros-iot-streams
+          image: nemometaos/eros-iot-streams:v0.1.1
           ports:
             - containerPort: 8000
               protocol: TCP
