@@ -4,7 +4,7 @@ The files in this folder, feature a modular, Kubernetes data platform designed f
 
 The architecture is built around microservices deployed using Kustomize, enabling granular control over each component and its dependencies.
 
-![Alt text](/images/EROS4NRG-architecture.svg)
+![Alt text](/images/EROS4NRG-architecture.png)
 
 The platform is composed of the following core modules:
 

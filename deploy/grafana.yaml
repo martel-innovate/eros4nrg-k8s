@@ -50,7 +50,3 @@ spec:
         - name: grafana-datasources
           configMap:
             name: grafana-datasources
-
-# /opt/bitnami/grafana/conf/provisioning/dashboards
-
-# /opt/bitnami/grafana/conf/provisioning/datasources
